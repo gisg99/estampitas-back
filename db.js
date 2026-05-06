@@ -52,11 +52,70 @@ const stickerTemplate = [
 export async function initDB() {
   const client = await pool.connect();
   try {
-    await client.query(`ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS genero TEXT`);
+    // 1. Crear tablas
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS selecciones (
+        id          SERIAL PRIMARY KEY,
+        nombre      TEXT NOT NULL,
+        abreviatura TEXT NOT NULL UNIQUE,
+        grupo       TEXT
+      );
 
-    // Seed stickers for all selecciones — batch insert (1 query total)
+      CREATE TABLE IF NOT EXISTS usuarios (
+        id                 SERIAL PRIMARY KEY,
+        nombre             TEXT NOT NULL,
+        correo             TEXT NOT NULL UNIQUE,
+        fecha_nacimiento   DATE,
+        hashed_password    TEXT NOT NULL,
+        pais               TEXT,
+        estado             TEXT,
+        genero             TEXT,
+        seleccion_favorita INTEGER REFERENCES selecciones(id) ON DELETE SET NULL,
+        jugador_favorito   TEXT,
+        created_at         TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+
+      CREATE TABLE IF NOT EXISTS stickers (
+        id           SERIAL PRIMARY KEY,
+        seleccion_id INTEGER NOT NULL REFERENCES selecciones(id) ON DELETE CASCADE,
+        numero       INTEGER NOT NULL,
+        tipo         TEXT NOT NULL CHECK (tipo IN ('jugador', 'escudo', 'alineacion')),
+        posicion     TEXT,
+        UNIQUE (seleccion_id, numero)
+      );
+
+      CREATE TABLE IF NOT EXISTS coleccion (
+        id         SERIAL PRIMARY KEY,
+        usuario_id INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
+        sticker_id INTEGER NOT NULL REFERENCES stickers(id) ON DELETE CASCADE,
+        cantidad   INTEGER NOT NULL DEFAULT 1 CHECK (cantidad >= 0),
+        UNIQUE (usuario_id, sticker_id)
+      );
+    `);
+
+    // 2. Seed selecciones
+    await client.query(`
+      INSERT INTO selecciones (nombre, abreviatura, grupo) VALUES
+        ('FIFA World Cup 2026', 'FWC', NULL),
+        ('México',            'MEX', 'A'), ('Sudáfrica',       'RSA', 'A'), ('Corea del Sur',   'KOR', 'A'), ('República Checa', 'CZE', 'A'),
+        ('Canadá',            'CAN', 'B'), ('Bosnia',          'BIH', 'B'), ('Catar',           'QAT', 'B'), ('Suiza',           'SUI', 'B'),
+        ('Brasil',            'BRA', 'C'), ('Marruecos',       'MAR', 'C'), ('Haití',           'HAI', 'C'), ('Escocia',         'SCO', 'C'),
+        ('Estados Unidos',    'USA', 'D'), ('Paraguay',        'PAR', 'D'), ('Australia',       'AUS', 'D'), ('Turquía',         'TUR', 'D'),
+        ('Alemania',          'GER', 'E'), ('Curazao',         'CUW', 'E'), ('Costa de Marfil', 'CIV', 'E'), ('Ecuador',         'ECU', 'E'),
+        ('Países Bajos',      'NED', 'F'), ('Japón',           'JPN', 'F'), ('Suecia',          'SWE', 'F'), ('Túnez',           'TUN', 'F'),
+        ('Página Promo CC',   'CC',  'FX'),
+        ('Bélgica',           'BEL', 'G'), ('Egipto',          'EGY', 'G'), ('Irán',            'IRN', 'G'), ('Nueva Zelanda',   'NZL', 'G'),
+        ('España',            'ESP', 'H'), ('Uruguay',         'URU', 'H'), ('Arabia Saudita',  'KSA', 'H'), ('Cabo Verde',      'CPV', 'H'),
+        ('Francia',           'FRA', 'I'), ('Senegal',         'SEN', 'I'), ('Irak',            'IRQ', 'I'), ('Noruega',         'NOR', 'I'),
+        ('Argentina',         'ARG', 'J'), ('Austria',         'AUT', 'J'), ('Argelia',         'ALG', 'J'), ('Jordania',        'JOR', 'J'),
+        ('Portugal',          'POR', 'K'), ('Colombia',        'COL', 'K'), ('Uzbekistán',      'UZB', 'K'), ('RD Congo',        'COD', 'K'),
+        ('Inglaterra',        'ENG', 'L'), ('Croacia',         'CRO', 'L'), ('Panamá',          'PAN', 'L'), ('Ghana',           'GHA', 'L')
+      ON CONFLICT (abreviatura) DO UPDATE
+        SET nombre = EXCLUDED.nombre, grupo = EXCLUDED.grupo;
+    `);
+
+    // 3. Seed stickers para todas las selecciones
     const { rows: selecciones } = await client.query('SELECT id, abreviatura FROM selecciones');
-    if (selecciones.length === 0) return;
 
     const values = [];
     const params = [];
@@ -77,7 +136,7 @@ export async function initDB() {
       ON CONFLICT (seleccion_id, numero) DO NOTHING
     `, params);
 
-    console.log(`DB lista — ${selecciones.length} selecciones, ${selecciones.length * stickerTemplate.length} stickers`);
+    console.log(`DB lista — ${selecciones.length} selecciones`);
   } finally {
     client.release();
   }
