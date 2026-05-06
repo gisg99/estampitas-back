@@ -7,6 +7,7 @@ import userRouter from './routes/user.js';
 import collectionRouter from './routes/collection.js';
 import statsRouter from './routes/stats.js';
 import seleccionesRouter from './routes/selecciones.js';
+import tradeRouter from './routes/trade.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -16,6 +17,7 @@ app.use(express.json());
 
 app.use('/api/auth', authRouter);
 app.use('/api/selecciones', seleccionesRouter);
+app.use('/api/trade', tradeRouter);
 
 app.use('/api/user',       requireAuth, userRouter);
 app.use('/api/collection', requireAuth, collectionRouter);
