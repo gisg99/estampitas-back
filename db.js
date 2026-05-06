@@ -2,9 +2,11 @@ import pg from 'pg';
 
 const connectionString = process.env.DATABASE_URL;
 
+const isLocal = !connectionString || /localhost|127\.0\.0\.1/.test(connectionString);
+
 const pool = new pg.Pool({
   connectionString,
-  ssl: { rejectUnauthorized: false },
+  ssl: isLocal ? false : { rejectUnauthorized: false },
 });
 
 // CC: 14 cromos promocionales, numerados 1-14

@@ -24,14 +24,20 @@ router.get('/', async (req, res) => {
       ),
 
       pool.query(`
-        SELECT sel.abreviatura AS country_abrv,
-               COUNT(s.id)::int              AS total,
-               COUNT(c.sticker_id)::int      AS collected
+        SELECT
+          CASE
+            WHEN sel.abreviatura = 'FWC' AND s.numero <= 8 THEN 'FWC_A'
+            WHEN sel.abreviatura = 'FWC' AND s.numero > 8  THEN 'FWC_B'
+            ELSE sel.abreviatura
+          END AS country_abrv,
+          COUNT(s.id)::int                                                             AS total,
+          COUNT(c.sticker_id)::int                                                     AS collected,
+          COALESCE(SUM(CASE WHEN c.cantidad > 1 THEN c.cantidad - 1 ELSE 0 END), 0)::int AS duplicates
         FROM stickers s
         JOIN selecciones sel ON sel.id = s.seleccion_id
         LEFT JOIN coleccion c ON c.sticker_id = s.id AND c.usuario_id = $1 AND c.cantidad >= 1
-        GROUP BY sel.abreviatura
-        ORDER BY sel.abreviatura
+        GROUP BY 1
+        ORDER BY 1
       `, [req.userId]),
     ]);
 

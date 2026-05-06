@@ -8,7 +8,7 @@ router.get('/', async (req, res) => {
     const { rows } = await pool.query(`
       SELECT id, nombre, abreviatura, grupo
       FROM selecciones
-      ORDER BY grupo NULLS FIRST, id
+      ORDER BY grupo NULLS FIRST, orden NULLS LAST, id
     `);
     res.json(rows);
   } catch (err) {
