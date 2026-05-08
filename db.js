@@ -16,11 +16,12 @@ const ccTemplate = Array.from({ length: 14 }, (_, i) => ({
   posicion: null,
 }));
 
-// FWC: numero 0 → escudo (logo), numeros 1-19 → jugador (9 al inicio + 11 al final = 20 total)
-const fwcTemplate = [
-  { numero: 0, tipo: 'escudo', posicion: null },
-  ...Array.from({ length: 19 }, (_, i) => ({ numero: i + 1, tipo: 'jugador', posicion: null })),
-];
+// FWC: todas las 20 estampas son holográficas (escudo)
+const fwcTemplate = Array.from({ length: 20 }, (_, i) => ({
+  numero: i,
+  tipo: 'escudo',
+  posicion: null,
+}));
 
 // numero 1        → escudo
 // numeros 2-4     → portero    (3)
