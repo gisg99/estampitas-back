@@ -8,6 +8,7 @@ import collectionRouter from './routes/collection.js';
 import statsRouter from './routes/stats.js';
 import seleccionesRouter from './routes/selecciones.js';
 import tradeRouter from './routes/trade.js';
+import tradeRequestsRouter from './routes/tradeRequests.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -19,9 +20,10 @@ app.use('/api/auth', authRouter);
 app.use('/api/selecciones', seleccionesRouter);
 app.use('/api/trade', tradeRouter);
 
-app.use('/api/user',       requireAuth, userRouter);
-app.use('/api/collection', requireAuth, collectionRouter);
-app.use('/api/stats',      requireAuth, statsRouter);
+app.use('/api/user',           requireAuth, userRouter);
+app.use('/api/collection',     requireAuth, collectionRouter);
+app.use('/api/stats',          requireAuth, statsRouter);
+app.use('/api/trade-requests', requireAuth, tradeRequestsRouter);
 
 initDB()
   .then(() => app.listen(PORT, () => console.log(`Backend corriendo en http://localhost:${PORT}`)))

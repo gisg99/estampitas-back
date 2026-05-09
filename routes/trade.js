@@ -16,6 +16,7 @@ router.get('/:userId', async (req, res) => {
       SELECT s.id            AS sticker_id,
              sel.abreviatura AS country_abrv,
              s.numero        AS number,
+             s.tipo          AS type,
              COALESCE(c.cantidad, 0) AS quantity
       FROM stickers s
       JOIN selecciones sel ON sel.id = s.seleccion_id

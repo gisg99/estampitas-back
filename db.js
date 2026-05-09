@@ -94,6 +94,16 @@ export async function initDB() {
         cantidad   INTEGER NOT NULL DEFAULT 1 CHECK (cantidad >= 0),
         UNIQUE (usuario_id, sticker_id)
       );
+
+      CREATE TABLE IF NOT EXISTS trade_requests (
+        id           SERIAL PRIMARY KEY,
+        from_user_id INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
+        to_user_id   INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
+        trades       JSONB NOT NULL,
+        status       TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'accepted', 'rejected')),
+        created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+      CREATE INDEX IF NOT EXISTS idx_trade_requests_to ON trade_requests(to_user_id, status);
     `);
 
     // 2. Seed selecciones
