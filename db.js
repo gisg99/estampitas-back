@@ -1,6 +1,6 @@
 import pg from 'pg';
 
-const connectionString = process.env.DATABASE_URL;
+const connectionString = process.env.DATABASE_URL; 
 
 const isLocal = !connectionString || /localhost|127\.0\.0\.1/.test(connectionString);
 
